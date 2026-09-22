@@ -18,9 +18,21 @@
   <script defer src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
   <script defer src="vendor/fraction.min.js"></script>
   <script defer src="game-core.js"></script>
+  <script defer src="config.js"></script>
   <script defer src="app.js"></script>
 </head>
 <body>
+  <section id="login-screen" class="login-screen">
+    <div class="login-panel">
+      <div class="login-brand"><span>Q</span><div><small>RATIONAL NUMBER LAB</small><h1>有理數加減訓練場</h1></div></div>
+      <div class="login-art"><img src="player-lv1.png" alt="學習角色"></div>
+      <label>班別<select id="class-select"></select></label>
+      <label>學號<select id="id-select"></select></label>
+      <div class="student-preview"><span>學生</span><strong id="student-name-display">請選擇班別與學號</strong></div>
+      <button id="login-button" type="button">進入訓練</button>
+      <p id="login-status"></p>
+    </div>
+  </section>
   <main class="app-shell">
     <header class="topbar">
       <div class="brand-block">
@@ -31,8 +43,11 @@
         </div>
       </div>
       <div class="header-stats" aria-label="練習統計">
+        <div class="identity-stat"><span id="player-class">尚未登入</span><strong id="player-name">學生</strong></div>
         <div><span>答對</span><strong id="correct-count">0</strong></div>
         <div><span>連勝</span><strong id="streak-count">0</strong></div>
+        <a class="icon-button header-link" href="dashboard.html" target="_blank" title="開啟教師大屏" aria-label="開啟教師大屏"><i data-lucide="monitor-up"></i></a>
+        <button id="logout-button" class="icon-button" type="button" title="切換學生" aria-label="切換學生"><i data-lucide="log-out"></i></button>
         <button id="reset-progress" class="icon-button" type="button" title="重設進度" aria-label="重設進度">
           <i data-lucide="rotate-ccw"></i>
         </button>
