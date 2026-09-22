@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <title>有理數加減訓練場</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\\]"]] },
+      svg: { fontCache: "global" },
+      startup: { typeset: false }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-svg.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script defer src="vendor/fraction.min.js"></script>
+  <script defer src="game-core.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand-block">
+        <span class="brand-mark">Q</span>
+        <div>
+          <p>RATIONAL NUMBER LAB</p>
+          <h1>有理數加減訓練場</h1>
+        </div>
+      </div>
+      <div class="header-stats" aria-label="練習統計">
+        <div><span>答對</span><strong id="correct-count">0</strong></div>
+        <div><span>連勝</span><strong id="streak-count">0</strong></div>
+        <button id="reset-progress" class="icon-button" type="button" title="重設進度" aria-label="重設進度">
+          <i data-lucide="rotate-ccw"></i>
+        </button>
+      </div>
+    </header>
+
+    <section class="level-strip" aria-label="關卡進度">
+      <div class="level-copy">
+        <span id="level-kicker">LEVEL 1</span>
+        <strong id="level-title">整數基礎</strong>
+      </div>
+      <div class="xp-group">
+        <div class="xp-label"><span>關卡經驗</span><strong id="xp-copy">0 / 300</strong></div>
+        <div class="xp-track" role="progressbar" aria-valuemin="0" aria-valuemax="300" aria-valuenow="0">
+          <span id="xp-bar"></span>
+        </div>
+      </div>
+      <div class="level-dots" aria-label="三個關卡">
+        <span class="active" data-level-dot="1">1</span>
+        <span data-level-dot="2">2</span>
+        <span data-level-dot="3">3</span>
+      </div>
+    </section>
+
+    <div class="workspace">
+      <aside class="player-panel panel">
+        <div class="avatar-stage">
+          <img id="player-avatar" src="player-lv1.png" alt="學習角色">
+          <span id="rank-chip">符號新手</span>
+        </div>
+        <div class="mission-copy">
+          <span>本關重點</span>
+          <strong id="mission-title">正負整數加減</strong>
+          <p id="mission-hint">先看運算符號，再決定向左或向右移動。</p>
+        </div>
+        <div class="reward-row">
+          <div class="reward-positive"><span>答對</span><strong>+15 XP</strong></div>
+          <div class="reward-negative"><span>答錯</span><strong>-10 XP</strong></div>
+        </div>
+      </aside>
+
+      <section class="practice-panel panel">
+        <div class="question-meta">
+          <span id="question-type">整數加減</span>
+          <span>第 <strong id="question-number">1</strong> 題</span>
+        </div>
+        <div id="question-math" class="math-question" aria-label="題目"></div>
+        <div class="equals-line"><span></span><strong>=</strong><span></span></div>
+        <div id="answer-display" class="answer-display empty" aria-live="polite">
+          <span class="answer-placeholder">?</span>
+        </div>
+        <div id="feedback" class="feedback" aria-live="assertive"></div>
+
+        <div id="keypad" class="keypad" aria-label="答案數字鍵盤">
+          <button type="button" data-key="7">7</button>
+          <button type="button" data-key="8">8</button>
+          <button type="button" data-key="9">9</button>
+          <button type="button" data-action="backspace" class="key-utility" title="刪除" aria-label="刪除一位"><i data-lucide="delete"></i></button>
+          <button type="button" data-key="4">4</button>
+          <button type="button" data-key="5">5</button>
+          <button type="button" data-key="6">6</button>
+          <button type="button" data-action="clear" class="key-utility">清除</button>
+          <button type="button" data-key="1">1</button>
+          <button type="button" data-key="2">2</button>
+          <button type="button" data-key="3">3</button>
+          <button type="button" data-action="fraction" class="key-fraction"><span class="mini-fraction"><b>□</b><i></i><b>□</b></span></button>
+          <button type="button" data-action="sign" class="key-sign">−</button>
+          <button type="button" data-key="0">0</button>
+          <button id="submit-answer" type="button" data-action="submit" class="key-submit" disabled>確認</button>
+        </div>
+      </section>
+
+      <aside class="map-panel panel">
+        <div class="map-heading">
+          <span>TRAINING MAP</span>
+          <strong>三階段挑戰</strong>
+        </div>
+        <ol class="level-map">
+          <li class="active" data-level-card="1">
+            <span>01</span>
+            <div><strong>整數基礎</strong><small>−4 + 3</small></div>
+            <i data-lucide="check"></i>
+          </li>
+          <li data-level-card="2">
+            <span>02</span>
+            <div><strong>括號變號</strong><small>−4 + (−3)</small></div>
+            <i data-lucide="lock-keyhole"></i>
+          </li>
+          <li data-level-card="3">
+            <span>03</span>
+            <div><strong>分數運算</strong><small>異分母與負分數</small></div>
+            <i data-lucide="lock-keyhole"></i>
+          </li>
+        </ol>
+        <div class="guardian">
+          <img src="monster-lv7.png" alt="有理數守關者">
+          <div><span>最終目標</span><strong>完成 900 XP</strong></div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <dialog id="level-dialog" class="level-dialog">
+    <img id="dialog-avatar" src="player-lv4.png" alt="角色升級">
+    <span id="dialog-kicker">LEVEL UP</span>
+    <h2 id="dialog-title">進入程度二</h2>
+    <p id="dialog-copy">新的運算挑戰已解鎖。</p>
+    <button id="continue-button" type="button">開始下一關</button>
+  </dialog>
+
+  <dialog id="reset-dialog" class="confirm-dialog">
+    <h2>重設全部進度？</h2>
+    <p>三個關卡的經驗與作答統計會回到起點。</p>
+    <div>
+      <button type="button" onclick="this.closest('dialog').close()">取消</button>
+      <button id="confirm-reset" class="danger" type="button">重設</button>
+    </div>
+  </dialog>
+</body>
+</html>
