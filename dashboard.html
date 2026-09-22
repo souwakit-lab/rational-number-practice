@@ -25,6 +25,9 @@
             <option>SG1A</option><option>SG1B</option>
           </select>
         </label>
+        <button id="download-data-button" type="button" title="下載數據 CSV" aria-label="下載數據 CSV"><i data-lucide="download"></i></button>
+        <button id="download-report-button" type="button" title="下載統計報表" aria-label="下載統計報表"><i data-lucide="file-down"></i></button>
+        <button id="reset-data-button" class="danger-action" type="button" title="重置數據" aria-label="重置數據"><i data-lucide="rotate-ccw"></i></button>
         <button id="fullscreen-button" type="button" title="全螢幕" aria-label="全螢幕"><i data-lucide="maximize"></i></button>
       </div>
     </header>
@@ -80,5 +83,19 @@
       </article>
     </section>
   </main>
+
+  <dialog id="reset-dialog" class="confirm-dialog">
+    <form method="dialog">
+      <span class="dialog-icon"><i data-lucide="triangle-alert"></i></span>
+      <small>RESET DATA</small>
+      <h2>重置課堂數據？</h2>
+      <p id="reset-dialog-copy">這會清除學生進度、作答紀錄並回復首領能量。</p>
+      <div class="dialog-actions">
+        <button value="cancel" type="submit">取消</button>
+        <button id="confirm-reset-button" class="danger-confirm" value="default" type="button">確認重置</button>
+      </div>
+    </form>
+  </dialog>
+  <div id="dashboard-toast" class="dashboard-toast" role="status" aria-live="polite"></div>
 </body>
 </html>
