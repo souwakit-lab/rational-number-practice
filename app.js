@@ -145,7 +145,7 @@ function login() {
 async function loadRemoteProgress(localTotal) {
   if (!API_URL) return;
   const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), 9000);
+  const timeout = window.setTimeout(() => controller.abort(), 20000);
   try {
     const response = await fetch(`${API_URL}?action=loadRationalPlayer&className=${encodeURIComponent(player.className)}&id=${player.id}&t=${Date.now()}`, { signal: controller.signal });
     if (!response.ok) throw new Error("Unable to load progress");
