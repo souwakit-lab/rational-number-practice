@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap');
-
 :root { --ink:#0d1524; --panel:#182235; --panel2:#202c42; --line:#33425c; --text:#f6f8fc; --muted:#9faac0; --coral:#ee5d74; --mint:#48d6a2; --yellow:#f4c95d; --sky:#55bce9; }
 * { box-sizing: border-box; }
 html,body { width:100%; min-height:100%; }

@@ -1,6 +1,7 @@
 const STORAGE_KEY = "rational-number-practice-v1";
 const API_URL = window.RATIONAL_CONFIG?.apiUrl || "";
 const core = window.RationalGameCore;
+const mathRenderer = window.RationalMathRenderer;
 
 const studentDB = {
   SG1A: { 1:"歐陽周政",2:"歐芷菱",3:"蔡銀杰",4:"陳俊希",5:"陳炯文",6:"陳宇恆",7:"陳柏豪",8:"卓莉珊",9:"莊超穎",10:"鍾欣澄",11:"馮子軒",12:"黃鈞亮",13:"林立",14:"李振豪",15:"李梓琪",16:"李沁穎",17:"李宇杰",18:"梁依靜",19:"梁羽盈",20:"盧佩辰",21:"黃夢琪",22:"趙家美",23:"歐陽浩賢",24:"陳家莉",25:"歐承澔",26:"張子茵",27:"徐希瑜",28:"邢嘉豪",29:"楊昊宇",30:"邱嘉成",31:"郭添滿",32:"王思淇",33:"黃鈺裕",34:"黃健樺" },
@@ -23,6 +24,7 @@ let pendingAnswers = [];
 let pendingDamage = 0;
 let syncInFlight = false;
 let syncQueued = false;
+let progressDirty = false;
 
 const $ = (id) => document.getElementById(id);
 
@@ -68,6 +70,7 @@ function init() {
   $("confirm-reset").addEventListener("click", resetProgress);
   document.addEventListener("keydown", handlePhysicalKeyboard);
   if (window.lucide) lucide.createIcons();
+  else $("lucide-script")?.addEventListener("load", () => lucide.createIcons(), { once: true });
 }
 
 function populateLogin() {
@@ -90,32 +93,45 @@ function updateStudentPreview() {
   $("student-name-display").textContent = studentDB[className]?.[id] || "請選擇班別與學號";
 }
 
-async function login() {
+function login() {
   const className = $("class-select").value;
   const id = Number($("id-select").value);
   const name = studentDB[className]?.[id];
   if (!name) return;
   player = { className, id, name };
-  const button = $("login-button");
-  button.disabled = true;
-  $("login-status").textContent = "正在讀取課堂進度...";
+  progress = loadProgress();
+  progressDirty = false;
+  $("login-status").textContent = "";
+  $("player-class").textContent = `${className} ${id} 號`;
+  $("player-name").textContent = name;
+  $("login-screen").classList.add("hidden");
+  updateProgressUI();
+  nextQuestion();
+  loadRemoteProgress(progress.total);
+}
+
+async function loadRemoteProgress(localTotal) {
+  if (!API_URL) return;
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 4500);
   try {
-    progress = loadProgress();
-    if (API_URL) {
-      const response = await fetch(`${API_URL}?action=loadRationalPlayer&className=${encodeURIComponent(className)}&id=${id}&t=${Date.now()}`);
-      if (!response.ok) throw new Error("Unable to load progress");
-      const data = await response.json();
-      if (data.player) progress = { ...defaultProgress(), ...data.player };
-    }
-    $("player-class").textContent = `${className} ${id} 號`;
-    $("player-name").textContent = name;
-    $("login-screen").classList.add("hidden");
+    const response = await fetch(`${API_URL}?action=loadRationalPlayer&className=${encodeURIComponent(player.className)}&id=${player.id}&t=${Date.now()}`, { signal: controller.signal });
+    if (!response.ok) throw new Error("Unable to load progress");
+    const data = await response.json();
+    if (!data.player || progressDirty || progress.total !== localTotal) return;
+    if (Number(data.player.total || 0) < Number(progress.total || 0)) return;
+    const previousLevel = progress.level;
+    progress = { ...defaultProgress(), ...data.player };
+    saveProgress();
     updateProgressUI();
-    nextQuestion();
+    if (progress.level !== previousLevel) {
+      questionNumber = 0;
+      nextQuestion();
+    }
   } catch (error) {
-    console.error(error);
-    $("login-status").textContent = "暫時未能連接課堂資料，請稍後重試。";
-    button.disabled = false;
+    if (error.name !== "AbortError") console.warn("Remote progress unavailable", error);
+  } finally {
+    window.clearTimeout(timeout);
   }
 }
 
@@ -186,8 +202,7 @@ function renderEntry() {
 }
 
 function renderMath(element, tex) {
-  element.innerHTML = `\\[${tex}\\]`;
-  if (window.MathJax?.typesetPromise) MathJax.typesetPromise([element]).catch(console.error);
+  mathRenderer.render(element, tex);
 }
 
 function submitAnswer() {
@@ -198,6 +213,7 @@ function submitAnswer() {
   const correct = answer.equals(question.answer);
   const result = core.applyResult(progress, correct);
   progress = result.progress;
+  progressDirty = true;
   progress.mistakes = correct ? 0 : (Number(progress.mistakes) || 0) + 1;
   pendingDamage += correct ? 45 : 0;
   pendingAnswers.push({
@@ -238,7 +254,10 @@ function updateProgressUI() {
   $("xp-copy").textContent = `${progress.xp} / 300`;
   $("xp-bar").style.width = `${Math.min(100, (progress.xp / 300) * 100)}%`;
   $("xp-bar").parentElement.setAttribute("aria-valuenow", progress.xp);
+  $("total-count").textContent = progress.total;
   $("correct-count").textContent = progress.correct;
+  $("wrong-count").textContent = Math.max(0, progress.total - progress.correct);
+  $("accuracy-count").textContent = progress.total ? `${Math.round(progress.correct / progress.total * 100)}%` : "--";
   $("streak-count").textContent = progress.streak;
   $("player-avatar").src = info.avatar;
   $("rank-chip").textContent = info.rank;
@@ -281,6 +300,7 @@ function handlePhysicalKeyboard(event) {
 
 function resetProgress() {
   progress = defaultProgress();
+  progressDirty = true;
   saveProgress();
   pendingAnswers = [];
   pendingDamage = 0;

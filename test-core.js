@@ -1,5 +1,6 @@
 const assert = require("node:assert/strict");
 const core = require("./game-core.js");
+const mathRenderer = require("./math-renderer.js");
 
 const fixed = (values) => {
   let index = 0;
@@ -17,6 +18,13 @@ assert.match(level2.tex, /\\left\(-/);
 const level3 = core.generateQuestion(3, fixed([0.1, 0.2, 0.3, 0.7, 0.5]));
 assert.equal(level3.level, 3);
 assert.match(level3.tex, /\\frac/);
+assert.deepEqual(mathRenderer.tokenize("-\\frac{3}{4} + \\left(-2\\right)"), [
+  { type: "text", value: "−" },
+  { type: "fraction", numerator: "3", denominator: "4" },
+  { type: "text", value: " + (−2)" },
+]);
+assert.equal(mathRenderer.plainText("-\\frac{3}{4}"), "−3/4");
+assert.equal(mathRenderer.plainText("\\frac{\\square}{5}"), "□/5");
 
 assert.equal(core.parseAnswer("-3/4").toFraction(), "-3/4");
 assert.equal(core.parseAnswer("6/8").toFraction(), "3/4");
