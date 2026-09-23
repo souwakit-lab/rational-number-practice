@@ -9,9 +9,10 @@ const studentDB = {
 };
 
 const levelInfo = {
-  1: { title: "整數基礎", rank: "符號新手", mission: "正負整數加減", hint: "先看運算符號，再決定向左或向右移動。", avatar: "player-lv1.png" },
-  2: { title: "括號變號", rank: "括號解碼員", mission: "拆開負數括號", hint: "減去負數會變成加上正數；加上負數則向負方向移動。", avatar: "player-lv4.png" },
-  3: { title: "分數運算", rank: "有理數大師", mission: "負分數與異分母", hint: "先通分，再處理正負號，最後把答案約成最簡分數。", avatar: "player-lv7.png" },
+  1: { title: "整數基礎", rank: "符號新手", mission: "−10 至 10 的加減", hint: "先看運算符號，再決定向左或向右移動。", avatar: "player-lv1.png" },
+  2: { title: "兩位數挑戰", rank: "整數計算員", mission: "不超過 40 的運算", hint: "至少一個數是兩位數，留意正負號與進退位。", avatar: "player-lv4.png" },
+  3: { title: "括號解碼", rank: "括號解碼員", mission: "去括號與負數", hint: "減去負數會變成加上正數；加上負數則向負方向移動。", avatar: "player-lv4.png" },
+  4: { title: "分數運算", rank: "有理數大師", mission: "簡單正負分數", hint: "先通分，再處理正負號，最後把答案約成最簡分數。", avatar: "player-lv7.png" },
 };
 
 let progress = defaultProgress();
@@ -40,7 +41,7 @@ function loadProgress() {
   const fallback = defaultProgress();
   try {
     const saved = JSON.parse(localStorage.getItem(playerStorageKey()));
-    return { ...fallback, ...saved, level: Math.min(3, Math.max(1, Number(saved?.level) || 1)) };
+    return { ...fallback, ...saved, level: Math.min(4, Math.max(1, Number(saved?.level) || 1)) };
   } catch {
     return fallback;
   }
@@ -226,6 +227,7 @@ function submitAnswer() {
   saveProgress();
   scheduleSync();
   setKeypadDisabled(true);
+  playBattleAnimation(correct);
   showFeedback(correct);
   updateProgressUI();
 
@@ -243,6 +245,29 @@ function showFeedback(correct) {
   renderMath($("correct-answer-math"), core.fractionTex(question.answer));
 }
 
+function playBattleAnimation(correct) {
+  const source = correct ? $("player-avatar") : $("dragon-avatar");
+  const target = correct ? $("dragon-avatar") : $("player-avatar");
+  const layer = $("battle-effect-layer");
+  if (!source || !target || !layer) return;
+  const sourceRect = source.getBoundingClientRect();
+  const targetRect = target.getBoundingClientRect();
+  const effect = document.createElement("span");
+  effect.className = correct ? "magic-orb" : "dragon-blast";
+  effect.style.setProperty("--start-x", `${sourceRect.left + sourceRect.width / 2}px`);
+  effect.style.setProperty("--start-y", `${sourceRect.top + sourceRect.height / 2}px`);
+  effect.style.setProperty("--travel-x", `${targetRect.left + targetRect.width / 2 - sourceRect.left - sourceRect.width / 2}px`);
+  effect.style.setProperty("--travel-y", `${targetRect.top + targetRect.height / 2 - sourceRect.top - sourceRect.height / 2}px`);
+  source.classList.add(correct ? "is-casting" : "is-attacking");
+  target.classList.add("is-hit");
+  layer.appendChild(effect);
+  window.setTimeout(() => {
+    effect.remove();
+    source.classList.remove("is-casting", "is-attacking");
+    target.classList.remove("is-hit");
+  }, 900);
+}
+
 function setKeypadDisabled(disabled) {
   $("keypad").querySelectorAll("button").forEach((button) => { button.disabled = disabled; });
 }
@@ -251,8 +276,8 @@ function updateProgressUI() {
   const info = levelInfo[progress.level];
   $("level-kicker").textContent = `LEVEL ${progress.level}`;
   $("level-title").textContent = info.title;
-  $("xp-copy").textContent = `${progress.xp} / 300`;
-  $("xp-bar").style.width = `${Math.min(100, (progress.xp / 300) * 100)}%`;
+  $("xp-copy").textContent = `${progress.xp} / ${core.LEVEL_XP}`;
+  $("xp-bar").style.width = `${Math.min(100, (progress.xp / core.LEVEL_XP) * 100)}%`;
   $("xp-bar").parentElement.setAttribute("aria-valuenow", progress.xp);
   $("total-count").textContent = progress.total;
   $("correct-count").textContent = progress.correct;
@@ -283,8 +308,8 @@ function showLevelDialog(completed) {
   const info = levelInfo[progress.level];
   $("dialog-avatar").src = info.avatar;
   $("dialog-kicker").textContent = completed ? "MASTERED" : "LEVEL UP";
-  $("dialog-title").textContent = completed ? "完成全部關卡" : `進入程度${["一", "二", "三"][progress.level - 1]}`;
-  $("dialog-copy").textContent = completed ? "你已完成 900 XP 的有理數訓練。" : `${info.title}已解鎖。`;
+  $("dialog-title").textContent = completed ? "完成全部關卡" : `進入程度${["一", "二", "三", "四"][progress.level - 1]}`;
+  $("dialog-copy").textContent = completed ? "你已完成 2,000 XP 的有理數訓練。" : `${info.title}已解鎖。`;
   $("continue-button").textContent = completed ? "繼續練習" : "開始下一關";
   $("level-dialog").showModal();
 }

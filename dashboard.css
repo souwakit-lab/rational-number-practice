@@ -41,15 +41,16 @@ button,select { font:inherit; }
 .live-stats strong { font:700 25px "Space Grotesk",sans-serif; }
 .live-stats div:nth-child(3) strong { color:var(--mint); }
 
-.side-stack { display:grid; grid-template-rows:minmax(0,.9fr) minmax(0,1.1fr); gap:clamp(8px,1vw,14px); min-height:0; }
+.side-stack { display:grid; grid-template-rows:minmax(0,1.15fr) minmax(0,.85fr); gap:clamp(8px,1vw,14px); min-height:0; }
 .dark-panel { border:1px solid var(--line); border-radius:6px; background:rgba(24,34,53,.95); }
 .tier-panel,.join-panel { min-height:0; padding:clamp(9px,1.2vh,15px); overflow:hidden; }
-.panel-heading { display:flex; justify-content:space-between; align-items:center; padding-bottom:10px; border-bottom:1px solid var(--line); }
+.panel-heading { display:flex; justify-content:space-between; align-items:center; padding-bottom:7px; border-bottom:1px solid var(--line); }
 .panel-heading strong { font-size:15px; }
 .panel-heading span { color:var(--muted); font-size:9px; }
 .panel-heading svg { width:18px; color:var(--sky); }
-.tier-row { display:grid; grid-template-columns:10px minmax(66px,86px) 1fr 22px; align-items:center; gap:7px; margin-top:clamp(7px,1.45vh,15px); }
+.tier-row { display:grid; grid-template-columns:10px minmax(66px,86px) 1fr 22px; align-items:center; gap:7px; margin-top:clamp(4px,.7vh,8px); }
 .tier-row b { font-size:11px; }
+.tier-row b small { display:block; margin-top:2px; color:var(--muted); font-size:8px; font-weight:500; }
 .tier-row > div { height:7px; overflow:hidden; background:#0b1422; }
 .tier-row i { display:block; width:0; height:100%; transition:width .45s ease; }
 .tier-row strong { text-align:right; font:700 13px "Space Grotesk",sans-serif; }
@@ -57,6 +58,7 @@ button,select { font:inherit; }
 .level-one,.tier-row:nth-child(2) i { background:#9ba8bc; }
 .level-two,.tier-row:nth-child(3) i { background:var(--sky); }
 .level-three,.tier-row:nth-child(4) i { background:var(--yellow); }
+.level-four,.tier-row:nth-child(5) i { background:var(--mint); }
 .join-panel { display:flex; flex-direction:column; }
 .qr-frame { display:grid; place-items:center; flex:1; min-height:0; margin:8px 0; padding:6px; background:#fff; }
 .qr-frame #join-qr,.qr-frame canvas,.qr-frame img { width:min(132px,16vh,100%) !important; height:auto !important; aspect-ratio:1; }

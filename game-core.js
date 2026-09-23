@@ -6,7 +6,7 @@
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.RationalGameCore = api;
 })(typeof globalThis !== "undefined" ? globalThis : this, function createCore(FractionClass) {
-  const LEVEL_XP = 300;
+  const LEVEL_XP = 500;
 
   function randomInt(min, max, rng) {
     return Math.floor(rng() * (max - min + 1)) + min;
@@ -16,6 +16,12 @@
     let value = 0;
     while (value === 0) value = randomInt(min, max, rng);
     return value;
+  }
+
+  function randomSimpleFraction(rng) {
+    const denominator = randomInt(2, 9, rng);
+    const numerator = nonZeroInt(-(denominator - 1), denominator - 1, rng);
+    return new FractionClass(numerator, denominator);
   }
 
   function integerTex(value) {
@@ -38,8 +44,8 @@
   function generateQuestion(level, rng = Math.random) {
     const operator = rng() < 0.5 ? "+" : "-";
     if (level === 1) {
-      const leftValue = nonZeroInt(-9, 9, rng);
-      const rightValue = randomInt(1, 9, rng);
+      const leftValue = nonZeroInt(-10, 10, rng);
+      const rightValue = randomInt(0, 10, rng);
       const left = new FractionClass(leftValue);
       const right = new FractionClass(rightValue);
       return {
@@ -51,24 +57,38 @@
     }
 
     if (level === 2) {
-      const leftValue = nonZeroInt(-12, 12, rng);
-      const rightValue = -randomInt(1, 12, rng);
+      const leftValue = nonZeroInt(-40, 40, rng);
+      const rightValue = randomInt(10, 40, rng);
       const left = new FractionClass(leftValue);
       const right = new FractionClass(rightValue);
       return {
         level,
-        type: "括號與負數",
+        type: "兩位數運算",
+        tex: `${integerTex(leftValue)} ${operator} ${integerTex(rightValue)}`,
+        answer: calculate(left, operator, right),
+      };
+    }
+
+    if (level === 3) {
+      const useLargeNumber = rng() < 0.5;
+      const leftValue = nonZeroInt(useLargeNumber ? -40 : -10, useLargeNumber ? 40 : 10, rng);
+      const rightValue = -randomInt(1, useLargeNumber ? 40 : 10, rng);
+      const left = new FractionClass(leftValue);
+      const right = new FractionClass(rightValue);
+      return {
+        level,
+        type: "去括號運算",
         tex: `${integerTex(leftValue)} ${operator} \\left(${integerTex(rightValue)}\\right)`,
         answer: calculate(left, operator, right),
       };
     }
 
-    const left = new FractionClass(nonZeroInt(-9, 9, rng), randomInt(2, 9, rng));
-    const right = new FractionClass(nonZeroInt(-9, 9, rng), randomInt(2, 9, rng));
+    const left = randomSimpleFraction(rng);
+    const right = randomSimpleFraction(rng);
     const rightTex = right.s < 0 ? `\\left(${fractionTex(right)}\\right)` : fractionTex(right);
     return {
-      level: 3,
-      type: "有理數分數",
+      level: 4,
+      type: "簡單分數運算",
       tex: `${fractionTex(left)} ${operator} ${rightTex}`,
       answer: calculate(left, operator, right),
     };
@@ -100,7 +120,7 @@
     let leveledUp = false;
     let completed = false;
     if (next.xp >= LEVEL_XP) {
-      if (next.level < 3) {
+      if (next.level < 4) {
         next.xp -= LEVEL_XP;
         next.level += 1;
         leveledUp = true;

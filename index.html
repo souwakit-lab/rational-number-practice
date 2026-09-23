@@ -57,15 +57,16 @@
         <strong id="level-title">整數基礎</strong>
       </div>
       <div class="xp-group">
-        <div class="xp-label"><span>關卡經驗</span><strong id="xp-copy">0 / 300</strong></div>
-        <div class="xp-track" role="progressbar" aria-valuemin="0" aria-valuemax="300" aria-valuenow="0">
+        <div class="xp-label"><span>關卡經驗</span><strong id="xp-copy">0 / 500</strong></div>
+        <div class="xp-track" role="progressbar" aria-valuemin="0" aria-valuemax="500" aria-valuenow="0">
           <span id="xp-bar"></span>
         </div>
       </div>
-      <div class="level-dots" aria-label="三個關卡">
+      <div class="level-dots" aria-label="四個關卡">
         <span class="active" data-level-dot="1">1</span>
         <span data-level-dot="2">2</span>
         <span data-level-dot="3">3</span>
+        <span data-level-dot="4">4</span>
       </div>
     </section>
 
@@ -118,11 +119,16 @@
       </section>
 
       <aside class="map-panel panel">
-        <div class="map-heading">
-          <span>TRAINING MAP</span>
-          <strong>三階段挑戰</strong>
+        <div class="guardian" aria-label="混沌有理數巨龍">
+          <img id="dragon-avatar" src="monster-lv7.png" alt="混沌有理數巨龍">
+          <div><span>FINAL BOSS</span><strong>混沌有理數巨龍</strong></div>
         </div>
-        <ol class="level-map">
+        <div class="level-dock">
+          <div class="map-heading">
+            <span>TRAINING MAP</span>
+            <strong>四階段挑戰</strong>
+          </div>
+          <ol class="level-map">
           <li class="active" data-level-card="1">
             <span>01</span>
             <div><strong>整數基礎</strong><small>−4 + 3</small></div>
@@ -130,22 +136,27 @@
           </li>
           <li data-level-card="2">
             <span>02</span>
-            <div><strong>括號變號</strong><small>−4 + (−3)</small></div>
+            <div><strong>兩位數挑戰</strong><small>−14 + 23</small></div>
             <i data-lucide="lock-keyhole"></i>
           </li>
           <li data-level-card="3">
             <span>03</span>
-            <div><strong>分數運算</strong><small>異分母與負分數</small></div>
+            <div><strong>括號解碼</strong><small>−4 + (−3)</small></div>
             <i data-lucide="lock-keyhole"></i>
           </li>
-        </ol>
-        <div class="guardian">
-          <img src="monster-lv7.png" alt="有理數守關者">
-          <div><span>最終目標</span><strong>完成 900 XP</strong></div>
+          <li data-level-card="4">
+            <span>04</span>
+            <div><strong>分數運算</strong><small>簡單正負分數</small></div>
+            <i data-lucide="lock-keyhole"></i>
+          </li>
+          </ol>
+          <div class="final-target"><span>最終目標</span><strong>完成 2,000 XP</strong></div>
         </div>
       </aside>
     </div>
   </main>
+
+  <div id="battle-effect-layer" class="battle-effect-layer" aria-hidden="true"></div>
 
   <dialog id="level-dialog" class="level-dialog">
     <img id="dialog-avatar" src="player-lv4.png" alt="角色升級">
@@ -157,7 +168,7 @@
 
   <dialog id="reset-dialog" class="confirm-dialog">
     <h2>重設全部進度？</h2>
-    <p>三個關卡的經驗與作答統計會回到起點。</p>
+    <p>四個關卡的經驗與作答統計會回到起點。</p>
     <div>
       <button type="button" onclick="this.closest('dialog').close()">取消</button>
       <button id="confirm-reset" class="danger" type="button">重設</button>

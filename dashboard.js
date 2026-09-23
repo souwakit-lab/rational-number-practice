@@ -3,7 +3,7 @@ const REFRESH_INTERVAL_MS = 8000;
 let refreshTimer;
 let refreshInFlight = false;
 let refreshPending = false;
-let latestData = { players: [], bossHp: 0, bossMaxHp: 12000 };
+let latestData = { players: [], bossHp: 0, bossMaxHp: 50000 };
 let toastTimer;
 const $ = (id) => document.getElementById(id);
 
@@ -58,7 +58,7 @@ function renderDashboard(data) {
   const players = data.players || [];
   const totalAnswers = players.reduce((sum, player) => sum + Number(player.total || 0), 0);
   const totalCorrect = players.reduce((sum, player) => sum + Number(player.correct || 0), 0);
-  const bossMaxHp = Number(data.bossMaxHp) || 12000;
+  const bossMaxHp = Number(data.bossMaxHp) || 50000;
   const bossHp = Math.max(0, Number(data.bossHp) || 0);
   $("boss-copy").textContent = `${Math.round(bossHp).toLocaleString("zh-Hant")} / ${bossMaxHp.toLocaleString("zh-Hant")}`;
   $("boss-bar").style.width = `${Math.min(100, (bossHp / bossMaxHp) * 100)}%`;
@@ -66,23 +66,25 @@ function renderDashboard(data) {
   $("stat-answers").textContent = totalAnswers.toLocaleString("zh-Hant");
   $("stat-accuracy").textContent = totalAnswers ? `${Math.round(totalCorrect / totalAnswers * 100)}%` : "--";
   $("updated-at").textContent = `更新 ${new Date().toLocaleTimeString("zh-Hant", { hour:"2-digit", minute:"2-digit", second:"2-digit" })}`;
-  renderTiers(players);
+  renderTiers(players, data.levelStats || []);
   renderRanking("xp-list", [...players].sort((a,b) => totalXp(b) - totalXp(a)), (player) => totalXp(player));
   renderRanking("streak-list", [...players].sort((a,b) => b.streak - a.streak), (player) => player.streak);
   renderRanking("accuracy-list", players.filter((player) => player.total >= 3).sort((a,b) => b.accuracy - a.accuracy || b.total - a.total), (player) => `${Math.round(player.accuracy * 100)}%`);
   renderWarnings(players);
 }
 
-function renderTiers(players) {
-  const counts = [1,2,3].map((level) => players.filter((player) => Number(player.level) === level).length);
+function renderTiers(players, levelStats) {
+  const counts = [1,2,3,4].map((level) => players.filter((player) => Number(player.level) === level).length);
   const max = Math.max(1, ...counts);
   counts.forEach((count,index) => {
+    const stats = levelStats.find((item) => Number(item.level) === index + 1) || { total:0, accuracy:0 };
     $(`tier-${index + 1}-count`).textContent = count;
+    $(`tier-${index + 1}-stats`).textContent = `${Number(stats.total || 0).toLocaleString("zh-Hant")} 題 · ${stats.total ? `${Math.round(Number(stats.accuracy || 0) * 100)}%` : "--"}`;
     $(`tier-${index + 1}-bar`).style.width = `${count / max * 100}%`;
   });
 }
 
-function totalXp(player) { return (Math.max(1, Number(player.level)) - 1) * 300 + Number(player.xp || 0); }
+function totalXp(player) { return (Math.max(1, Number(player.level)) - 1) * 500 + Number(player.xp || 0); }
 
 function renderRanking(id, players, valueFormatter) {
   const top = players.slice(0, 6);
