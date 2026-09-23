@@ -150,11 +150,11 @@ async function loadRemoteProgress(localTotal) {
     const response = await fetch(`${API_URL}?action=loadRationalPlayer&className=${encodeURIComponent(player.className)}&id=${player.id}&t=${Date.now()}`, { signal: controller.signal });
     if (!response.ok) throw new Error("Unable to load progress");
     const data = await response.json();
+    progress.levelStats = mergeLevelStats(progress.levelStats, data.levelStats || data.player?.levelStats);
+    saveProgress();
+    renderStudentStats();
     if (!data.player || progressDirty || progress.total !== localTotal) return;
     if (Number(data.player.total || 0) < Number(progress.total || 0)) {
-      progress.levelStats = mergeLevelStats(progress.levelStats, data.levelStats);
-      saveProgress();
-      renderStudentStats();
       return;
     }
     const previousLevel = progress.level;
