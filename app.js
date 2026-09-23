@@ -41,7 +41,9 @@ function emptyLevelStats() {
 function normalizeLevelStats(raw) {
   const normalized = emptyLevelStats();
   [1,2,3,4].forEach((level) => {
-    const item = raw?.[level] || raw?.find?.((entry) => Number(entry.level) === level) || {};
+    const item = Array.isArray(raw)
+      ? raw.find((entry) => Number(entry.level) === level) || {}
+      : raw?.[level] || {};
     normalized[level] = {
       total: Math.max(0, Number(item.total) || 0),
       correct: Math.max(0, Number(item.correct) || 0),
