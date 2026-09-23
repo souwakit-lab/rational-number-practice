@@ -78,8 +78,10 @@ function renderTiers(players, levelStats) {
   const max = Math.max(1, ...counts);
   counts.forEach((count,index) => {
     const stats = levelStats.find((item) => Number(item.level) === index + 1) || { total:0, accuracy:0 };
+    const total = Number(stats.total || 0);
+    const correct = Number(stats.correct || 0);
     $(`tier-${index + 1}-count`).textContent = count;
-    $(`tier-${index + 1}-stats`).textContent = `${Number(stats.total || 0).toLocaleString("zh-Hant")} 題 · ${stats.total ? `${Math.round(Number(stats.accuracy || 0) * 100)}%` : "--"}`;
+    $(`tier-${index + 1}-stats`).textContent = `${total.toLocaleString("zh-Hant")} 題 · 對 ${correct.toLocaleString("zh-Hant")} · 錯 ${Math.max(0, total - correct).toLocaleString("zh-Hant")} · ${total ? `${Math.round(Number(stats.accuracy || 0) * 100)}%` : "--"}`;
     $(`tier-${index + 1}-bar`).style.width = `${count / max * 100}%`;
   });
 }

@@ -26,11 +26,38 @@ let pendingDamage = 0;
 let syncInFlight = false;
 let syncQueued = false;
 let progressDirty = false;
+let selectedStatsLevel = "all";
 
 const $ = (id) => document.getElementById(id);
 
 function defaultProgress() {
-  return { level: 1, xp: 0, total: 0, correct: 0, streak: 0, mistakes: 0 };
+  return { level: 1, xp: 0, total: 0, correct: 0, streak: 0, mistakes: 0, levelStats: emptyLevelStats() };
+}
+
+function emptyLevelStats() {
+  return Object.fromEntries([1,2,3,4].map((level) => [level, { total:0, correct:0, streak:0 }]));
+}
+
+function normalizeLevelStats(raw) {
+  const normalized = emptyLevelStats();
+  [1,2,3,4].forEach((level) => {
+    const item = raw?.[level] || raw?.find?.((entry) => Number(entry.level) === level) || {};
+    normalized[level] = {
+      total: Math.max(0, Number(item.total) || 0),
+      correct: Math.max(0, Number(item.correct) || 0),
+      streak: Math.max(0, Number(item.streak) || 0),
+    };
+  });
+  return normalized;
+}
+
+function mergeLevelStats(localStats, remoteStats) {
+  const local = normalizeLevelStats(localStats);
+  const remote = normalizeLevelStats(remoteStats);
+  [1,2,3,4].forEach((level) => {
+    if (remote[level].total > local[level].total) local[level] = remote[level];
+  });
+  return local;
 }
 
 function playerStorageKey() {
@@ -41,7 +68,7 @@ function loadProgress() {
   const fallback = defaultProgress();
   try {
     const saved = JSON.parse(localStorage.getItem(playerStorageKey()));
-    return { ...fallback, ...saved, level: Math.min(4, Math.max(1, Number(saved?.level) || 1)) };
+    return { ...fallback, ...saved, level: Math.min(4, Math.max(1, Number(saved?.level) || 1)), levelStats: normalizeLevelStats(saved?.levelStats) };
   } catch {
     return fallback;
   }
@@ -63,6 +90,10 @@ function init() {
   document.querySelector("[data-action='fraction']").addEventListener("click", addFractionBar);
   document.querySelector("[data-action='sign']").addEventListener("click", toggleSign);
   $("submit-answer").addEventListener("click", submitAnswer);
+  document.querySelectorAll("[data-stats-level]").forEach((button) => button.addEventListener("click", () => {
+    selectedStatsLevel = button.dataset.statsLevel;
+    renderStudentStats();
+  }));
   $("continue-button").addEventListener("click", () => {
     $("level-dialog").close();
     nextQuestion();
@@ -120,9 +151,14 @@ async function loadRemoteProgress(localTotal) {
     if (!response.ok) throw new Error("Unable to load progress");
     const data = await response.json();
     if (!data.player || progressDirty || progress.total !== localTotal) return;
-    if (Number(data.player.total || 0) < Number(progress.total || 0)) return;
+    if (Number(data.player.total || 0) < Number(progress.total || 0)) {
+      progress.levelStats = mergeLevelStats(progress.levelStats, data.levelStats);
+      saveProgress();
+      renderStudentStats();
+      return;
+    }
     const previousLevel = progress.level;
-    progress = { ...defaultProgress(), ...data.player };
+    progress = { ...defaultProgress(), ...data.player, levelStats: normalizeLevelStats(data.levelStats || data.player.levelStats) };
     saveProgress();
     updateProgressUI();
     if (progress.level !== previousLevel) {
@@ -214,6 +250,12 @@ function submitAnswer() {
   const correct = answer.equals(question.answer);
   const result = core.applyResult(progress, correct);
   progress = result.progress;
+  const levelStats = normalizeLevelStats(progress.levelStats);
+  const currentStats = levelStats[question.level];
+  currentStats.total += 1;
+  currentStats.correct += correct ? 1 : 0;
+  currentStats.streak = correct ? currentStats.streak + 1 : 0;
+  progress.levelStats = levelStats;
   progressDirty = true;
   progress.mistakes = correct ? 0 : (Number(progress.mistakes) || 0) + 1;
   pendingDamage += correct ? 45 : 0;
@@ -279,11 +321,7 @@ function updateProgressUI() {
   $("xp-copy").textContent = `${progress.xp} / ${core.LEVEL_XP}`;
   $("xp-bar").style.width = `${Math.min(100, (progress.xp / core.LEVEL_XP) * 100)}%`;
   $("xp-bar").parentElement.setAttribute("aria-valuenow", progress.xp);
-  $("total-count").textContent = progress.total;
-  $("correct-count").textContent = progress.correct;
-  $("wrong-count").textContent = Math.max(0, progress.total - progress.correct);
-  $("accuracy-count").textContent = progress.total ? `${Math.round(progress.correct / progress.total * 100)}%` : "--";
-  $("streak-count").textContent = progress.streak;
+  renderStudentStats();
   $("player-avatar").src = info.avatar;
   $("rank-chip").textContent = info.rank;
   $("mission-title").textContent = info.mission;
@@ -302,6 +340,22 @@ function updateProgressUI() {
     if (icon) icon.setAttribute("data-lucide", level <= progress.level ? "check" : "lock-keyhole");
   });
   if (window.lucide) lucide.createIcons();
+}
+
+function renderStudentStats() {
+  const stats = selectedStatsLevel === "all"
+    ? { total:progress.total, correct:progress.correct, streak:progress.streak }
+    : normalizeLevelStats(progress.levelStats)[Number(selectedStatsLevel)];
+  $("total-count").textContent = stats.total;
+  $("correct-count").textContent = stats.correct;
+  $("wrong-count").textContent = Math.max(0, stats.total - stats.correct);
+  $("accuracy-count").textContent = stats.total ? `${Math.round(stats.correct / stats.total * 100)}%` : "--";
+  $("streak-count").textContent = stats.streak;
+  document.querySelectorAll("[data-stats-level]").forEach((button) => {
+    const active = button.dataset.statsLevel === selectedStatsLevel;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", String(active));
+  });
 }
 
 function showLevelDialog(completed) {
